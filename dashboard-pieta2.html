@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pieta Arte Sacra — Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0c0d0f;
+  --surface: #141618;
+  --surface2: #1c1e21;
+  --border: #252729;
+  --gold: #c9a96e;
+  --gold2: #e8c98a;
+  --gold-dim: rgba(201,169,110,0.12);
+  --teal: #4ecdc4;
+  --red: #e05252;
+  --text: #f0ede8;
+  --muted: #7a7670;
+  --radius: 16px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* HEADER */
+header {
+  background: linear-gradient(135deg, #0c0d0f 0%, #1a1510 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.logo-icon {
+  width: 42px;
+  height: 42px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.logo-text h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--gold2);
+  letter-spacing: 0.5px;
+}
+.logo-text p {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 300;
+}
+.header-badge {
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,169,110,0.3);
+  color: var(--gold);
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* MAIN */
+main {
+  padding: 32px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* SECTION TITLE */
+.section-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--gold);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, var(--border), transparent);
+}
+
+/* KPI CARDS */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.kpi-card.gold::before { background: linear-gradient(to right, var(--gold), var(--gold2)); }
+.kpi-card.teal::before { background: linear-gradient(to right, var(--teal), #a8edea); }
+.kpi-card.red::before { background: linear-gradient(to right, var(--red), #ff8a8a); }
+.kpi-card.purple::before { background: linear-gradient(to right, #9b59b6, #c39bd3); }
+.kpi-card:hover { border-color: rgba(201,169,110,0.3); }
+
+.kpi-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 10px;
+}
+.kpi-value {
+  font-family: 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.kpi-card.gold .kpi-value { color: var(--gold2); }
+.kpi-card.teal .kpi-value { color: var(--teal); }
+.kpi-card.red .kpi-value { color: var(--red); }
+.kpi-card.purple .kpi-value { color: #c39bd3; }
+.kpi-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+.kpi-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  font-size: 28px;
+  opacity: 0.2;
+}
+
+/* GRID LAYOUTS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px; }
+.grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.card-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.card-title span { color: var(--gold); }
+.chart-wrap { position: relative; }
+.chart-wrap.h180 { height: 180px; }
+.chart-wrap.h220 { height: 220px; }
+.chart-wrap.h260 { height: 260px; }
+.chart-wrap.h300 { height: 300px; }
+
+/* PRODUTOS TABLE */
+.prod-row {
+  display: grid;
+  grid-template-columns: 1fr 100px 100px 100px 80px;
+  gap: 8px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.prod-row:last-child { border-bottom: none; }
+.prod-row.header {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding-bottom: 8px;
+  font-weight: 500;
+}
+.prod-name { font-weight: 500; color: var(--text); }
+.prod-val { text-align: right; }
+.prod-custo { color: var(--muted); }
+.prod-preco { color: var(--gold2); font-weight: 600; }
+.prod-lucro { color: var(--teal); font-weight: 600; }
+.prod-margem {
+  text-align: right;
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 100px;
+  background: rgba(78,205,196,0.1);
+  color: var(--teal);
+  font-weight: 600;
+}
+
+/* ENCOMENDAS */
+.enc-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.enc-row:last-child { border-bottom: none; }
+.enc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.enc-dot.pago { background: var(--teal); }
+.enc-dot.pendente { background: var(--gold); }
+.enc-dot.enviar { background: var(--red); }
+.enc-info { flex: 1; }
+.enc-nome { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.enc-cliente { font-size: 11px; color: var(--muted); }
+.enc-val { font-family: 'Inter', sans-serif; font-size: 14px; color: var(--gold2); font-weight: 700; }
+.enc-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 100px;
+  font-weight: 500;
+}
+.enc-badge.pago { background: rgba(78,205,196,0.15); color: var(--teal); }
+.enc-badge.pendente { background: rgba(201,169,110,0.15); color: var(--gold); }
+.enc-badge.enviar { background: rgba(224,82,82,0.15); color: var(--red); }
+
+/* GASTOS */
+.gasto-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.gasto-row:last-child { border-bottom: none; }
+.gasto-desc { color: var(--text); }
+.gasto-val { color: var(--red); font-weight: 600; }
+
+/* PROGRESS BAR */
+.prog-row { margin-bottom: 14px; }
+.prog-top { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
+.prog-name { color: var(--text); }
+.prog-val { color: var(--gold2); font-weight: 600; }
+.prog-bar { height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 100px; }
+
+/* STAT BOX */
+.stat-box {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.stat-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.stat-val { font-family: 'Inter', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+
+/* DIVIDER */
+.mb16 { margin-bottom: 16px; }
+.mb32 { margin-bottom: 32px; }
+
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .grid-2, .grid-3, .grid-1-2, .grid-2-1 { grid-template-columns: 1fr; }
+  .prod-row { grid-template-columns: 1fr 80px 80px 80px; }
+  .prod-row .prod-margem { display: none; }
+}
+@media (max-width: 600px) {
+  main { padding: 16px; }
+  header { padding: 0 16px; }
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">✝️</div>
+    <div class="logo-text">
+      <h1>Pieta Arte Sacra</h1>
+      <p>Painel Financeiro • Maio 2026</p>
+    </div>
+  </div>
+  <div class="header-badge">Arte & Fé</div>
+</header>
+
+<main>
+
+  <!-- KPIs -->
+  <div class="section-title">Visão Geral</div>
+  <div class="kpi-grid mb32">
+    <div class="kpi-card gold">
+      <div class="kpi-icon">💰</div>
+      <div class="kpi-label">Total de Entradas</div>
+      <div class="kpi-value">R$ 4.386</div>
+      <div class="kpi-sub">7 encomendas registradas</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-icon">🛒</div>
+      <div class="kpi-label">Total de Saídas</div>
+      <div class="kpi-value">R$ 246</div>
+      <div class="kpi-sub">8 compras realizadas</div>
+    </div>
+    <div class="kpi-card teal">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-label">Lucro (Vendas - Gastos)</div>
+      <div class="kpi-value">R$ 4.140</div>
+      <div class="kpi-sub">Margem de 94,4%</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">🎨</div>
+      <div class="kpi-label">Lucro Total das Obras</div>
+      <div class="kpi-value">R$ 2.816</div>
+      <div class="kpi-sub">8 produtos precificados</div>
+    </div>
+  </div>
+
+  <!-- ENCOMENDAS + GASTOS -->
+  <div class="section-title">Encomendas & Gastos</div>
+  <div class="grid-2 mb32">
+
+    <!-- ENCOMENDAS -->
+    <div class="card">
+      <div class="card-title"><span>✝</span> Encomendas em Aberto</div>
+
+      <div class="enc-row">
+        <div class="enc-dot pendente"></div>
+        <div class="enc-info">
+          <div class="enc-nome">Padre Pio</div>
+          <div class="enc-cliente">Gilberto Sinoo · PIX</div>
+        </div>
+        <div class="enc-val">R$ 409</div>
+        <div class="enc-badge pendente">Pendente</div>
+      </div>
+
+      <div class="enc-row">
+        <div class="enc-dot pendente"></div>
+        <div class="enc-info">
+          <div class="enc-nome">Jesus Bom Pastor</div>
+          <div class="enc-cliente">Maria · Cartão</div>
+        </div>
+        <div class="enc-val">R$ 409</div>
+        <div class="enc-badge pendente">Pendente</div>
+      </div>
+
+      <div class="enc-row">
+        <div class="enc-dot pendente"></div>
+        <div class="enc-info">
+          <div class="enc-nome">São José + Escrivá</div>
+          <div class="enc-cliente">Nandhara · Cartão</div>
+        </div>
+        <div class="enc-val">R$ 932</div>
+        <div class="enc-badge pendente">Pendente</div>
+      </div>
+
+      <div class="enc-row">
+        <div class="enc-dot pendente"></div>
+        <div class="enc-info">
+          <div class="enc-nome">Crucifixo Mesa Completo</div>
+          <div class="enc-cliente">Flavia Peretti · Cartão</div>
+        </div>
+        <div class="enc-val">R$ 690</div>
+        <div class="enc-badge pendente">Pendente</div>
+      </div>
+
+      <div class="enc-row">
+        <div class="enc-dot pago"></div>
+        <div class="enc-info">
+          <div class="enc-nome">Crucifixo Parede Completo</div>
+          <div class="enc-cliente">Neide Azevedo · Cartão</div>
+        </div>
+        <div class="enc-val">R$ 550</div>
+        <div class="enc-badge pago">Pago</div>
+      </div>
+
+      <div class="enc-row">
+        <div class="enc-dot pago"></div>
+        <div class="enc-info">
+          <div class="enc-nome">Crucifixo Parede S/ Ornamentos</div>
+          <div class="enc-cliente">Ingryd · Cartão</div>
+        </div>
+        <div class="enc-val">R$ 516</div>
+        <div class="enc-badge pago">Pago</div>
+      </div>
+
+      <div class="enc-row">
+        <div class="enc-dot pendente"></div>
+        <div class="enc-info">
+          <div class="enc-nome">Padre Pio + São José</div>
+          <div class="enc-cliente">Amigo Luiz Felipe · PIX</div>
+        </div>
+        <div class="enc-val">R$ 880</div>
+        <div class="enc-badge pendente">Pendente</div>
+      </div>
+
+    </div>
+
+    <!-- GASTOS + GRÁFICO PIZZA -->
+    <div class="card">
+      <div class="card-title"><span>🛒</span> Gastos por Item</div>
+      <div class="chart-wrap h180 mb16">
+        <canvas id="chart-gastos"></canvas>
+      </div>
+      <div class="gasto-row"><span class="gasto-desc">Kit Limpeza Aerógrafo</span><span class="gasto-val">R$ 41,23</span></div>
+      <div class="gasto-row"><span class="gasto-desc">Strass Crucifixo</span><span class="gasto-val">R$ 41,80</span></div>
+      <div class="gasto-row"><span class="gasto-desc">Tinta Acrilex (2x)</span><span class="gasto-val">R$ 51,85</span></div>
+      <div class="gasto-row"><span class="gasto-desc">Melhor Envio</span><span class="gasto-val">R$ 32,66</span></div>
+      <div class="gasto-row"><span class="gasto-desc">Máscara Resina</span><span class="gasto-val">R$ 29,24</span></div>
+      <div class="gasto-row"><span class="gasto-desc">Recarga Cartucho + Película</span><span class="gasto-val">R$ 50,00</span></div>
+    </div>
+  </div>
+
+  <!-- PRECIFICAÇÃO -->
+  <div class="section-title">Precificação & Lucro por Produto</div>
+  <div class="card mb32">
+    <div class="card-title"><span>✝</span> Análise de Rentabilidade — Produtos</div>
+
+    <div class="prod-row header">
+      <div>Produto</div>
+      <div class="prod-val">Custo</div>
+      <div class="prod-val">Preço Venda</div>
+      <div class="prod-val">Lucro</div>
+      <div class="prod-val">Margem</div>
+    </div>
+
+    <div class="prod-row">
+      <div class="prod-name">Crucifixo Mesa Completo</div>
+      <div class="prod-val prod-custo">R$ 288</div>
+      <div class="prod-val prod-preco">R$ 690</div>
+      <div class="prod-val prod-lucro">R$ 402</div>
+      <div class="prod-margem">58%</div>
+    </div>
+    <div class="prod-row">
+      <div class="prod-name">Crucifixo Mesa S/ Ornamentos</div>
+      <div class="prod-val prod-custo">R$ 253</div>
+      <div class="prod-val prod-preco">R$ 620</div>
+      <div class="prod-val prod-lucro">R$ 367</div>
+      <div class="prod-margem">59%</div>
+    </div>
+    <div class="prod-row">
+      <div class="prod-name">Crucifixo Parede Completo</div>
+      <div class="prod-val prod-custo">R$ 243</div>
+      <div class="prod-val prod-preco">R$ 580</div>
+      <div class="prod-val prod-lucro">R$ 337</div>
+      <div class="prod-margem">58%</div>
+    </div>
+    <div class="prod-row">
+      <div class="prod-name">Crucifixo Parede S/ Ornamentos</div>
+      <div class="prod-val prod-custo">R$ 223</div>
+      <div class="prod-val prod-preco">R$ 540</div>
+      <div class="prod-val prod-lucro">R$ 317</div>
+      <div class="prod-margem">59%</div>
+    </div>
+    <div class="prod-row">
+      <div class="prod-name">São José 43cm</div>
+      <div class="prod-val prod-custo">R$ 168</div>
+      <div class="prod-val prod-preco">R$ 619</div>
+      <div class="prod-val prod-lucro">R$ 451</div>
+      <div class="prod-margem">73%</div>
+    </div>
+    <div class="prod-row">
+      <div class="prod-name">São José Operário Resina 33cm</div>
+      <div class="prod-val prod-custo">R$ 188</div>
+      <div class="prod-val prod-preco">R$ 549</div>
+      <div class="prod-val prod-lucro">R$ 361</div>
+      <div class="prod-margem">66%</div>
+    </div>
+    <div class="prod-row">
+      <div class="prod-name">Imagem Resina 30cm</div>
+      <div class="prod-val prod-custo">R$ 188</div>
+      <div class="prod-val prod-preco">R$ 509</div>
+      <div class="prod-val prod-lucro">R$ 321</div>
+      <div class="prod-margem">63%</div>
+    </div>
+    <div class="prod-row">
+      <div class="prod-name">Imagem Gesso 30cm</div>
+      <div class="prod-val prod-custo">R$ 148</div>
+      <div class="prod-val prod-preco">R$ 409</div>
+      <div class="prod-val prod-lucro">R$ 261</div>
+      <div class="prod-margem">64%</div>
+    </div>
+  </div>
+
+  <!-- GRÁFICOS -->
+  <div class="section-title">Análises Visuais</div>
+  <div class="grid-2 mb32">
+    <div class="card">
+      <div class="card-title"><span>📊</span> Lucro por Produto (R$)</div>
+      <div class="chart-wrap h260">
+        <canvas id="chart-lucro"></canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📊</span> Custo vs Preço de Venda (R$)</div>
+      <div class="chart-wrap h260">
+        <canvas id="chart-custo-preco"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- RANKING + STATUS -->
+  <div class="grid-2 mb32">
+    <div class="card">
+      <div class="card-title"><span>🏆</span> Ranking de Lucro por Produto</div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">São José 43cm</span><span class="prog-val">R$ 451</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:100%;background:var(--gold)"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">Crucifixo Mesa Completo</span><span class="prog-val">R$ 402</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:89%;background:var(--gold2)"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">São José Operário 33cm</span><span class="prog-val">R$ 361</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:80%;background:var(--teal)"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">Crucifixo Mesa S/ Ornamentos</span><span class="prog-val">R$ 367</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:81%;background:var(--teal)"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">Crucifixo Parede Completo</span><span class="prog-val">R$ 337</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:75%;background:#9b59b6"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">Imagem Resina 30cm</span><span class="prog-val">R$ 321</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:71%;background:#9b59b6"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">Crucifixo Parede S/ Ornamentos</span><span class="prog-val">R$ 317</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:70%;background:var(--red)"></div></div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-top"><span class="prog-name">Imagem Gesso 30cm</span><span class="prog-val">R$ 261</span></div>
+        <div class="prog-bar"><div class="prog-fill" style="width:58%;background:var(--red)"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span>💳</span> Status de Pagamentos</div>
+      <div class="chart-wrap h200 mb16">
+        <canvas id="chart-status"></canvas>
+      </div>
+      <div class="stat-box">
+        <div>
+          <div class="stat-label">Total Pago</div>
+          <div class="stat-val" style="color:var(--teal)">R$ 1.066,82</div>
+        </div>
+        <span style="font-size:24px">✅</span>
+      </div>
+      <div class="stat-box">
+        <div>
+          <div class="stat-label">Total Pendente</div>
+          <div class="stat-val" style="color:var(--gold)">R$ 3.320,00</div>
+        </div>
+        <span style="font-size:24px">⏳</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+Chart.defaults.color = '#7a7670';
+Chart.defaults.borderColor = '#252729';
+Chart.defaults.font.family = 'DM Sans';
+
+const GOLD = '#c9a96e';
+const GOLD2 = '#e8c98a';
+const TEAL = '#4ecdc4';
+const RED = '#e05252';
+const PURPLE = '#9b59b6';
+const MUTED = '#3a3c40';
+
+// GASTOS PIZZA
+new Chart(document.getElementById('chart-gastos'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Kit Aerógrafo','Strass','Tinta Acrilex','Melhor Envio','Máscara Resina','Recarga/Película'],
+    datasets: [{
+      data: [41.23, 41.80, 51.85, 32.66, 29.24, 50.00],
+      backgroundColor: [GOLD, GOLD2, TEAL, PURPLE, RED, '#56cfe1'],
+      borderWidth: 0,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 10, padding: 8 } },
+      tooltip: { callbacks: { label: c => ` R$ ${c.raw.toFixed(2)}` } }
+    }
+  }
+});
+
+// LUCRO POR PRODUTO
+new Chart(document.getElementById('chart-lucro'), {
+  type: 'bar',
+  data: {
+    labels: ['Cruz Mesa\nCompleto','Cruz Mesa\nS/Orn','Cruz Parede\nCompleto','Cruz Parede\nS/Orn','São José\n43cm','SJ Operário\n33cm','Img Resina\n30cm','Img Gesso\n30cm'],
+    datasets: [{
+      label: 'Lucro (R$)',
+      data: [401.99, 366.99, 336.99, 316.99, 450.99, 360.99, 320.99, 260.99],
+      backgroundColor: [GOLD, GOLD2, TEAL, TEAL, GOLD, PURPLE, PURPLE, RED],
+      borderRadius: 8,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` R$ ${c.raw.toFixed(2)}` } } },
+    scales: {
+      x: { ticks: { font: { size: 9 }, maxRotation: 0 }, grid: { display: false } },
+      y: { ticks: { callback: v => 'R$'+v }, grid: { color: '#252729' } }
+    }
+  }
+});
+
+// CUSTO VS PREÇO
+new Chart(document.getElementById('chart-custo-preco'), {
+  type: 'bar',
+  data: {
+    labels: ['Cruz Mesa\nCompl','Cruz Mesa\nS/Orn','Cruz Parede\nCompl','Cruz Parede\nS/Orn','SJ\n43cm','SJ Op.\n33cm','Img\nResina','Img\nGesso'],
+    datasets: [
+      {
+        label: 'Custo (R$)',
+        data: [288.01, 253.01, 243.01, 223.01, 168.01, 188.01, 188.01, 148.01],
+        backgroundColor: RED + '99',
+        borderRadius: 4,
+        borderSkipped: false
+      },
+      {
+        label: 'Preço Venda (R$)',
+        data: [690, 620, 580, 540, 619, 549, 509, 409],
+        backgroundColor: GOLD + '99',
+        borderRadius: 4,
+        borderSkipped: false
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { labels: { font: { size: 11 }, boxWidth: 10 } }, tooltip: { callbacks: { label: c => ` R$ ${c.raw.toFixed(2)}` } } },
+    scales: {
+      x: { ticks: { font: { size: 9 }, maxRotation: 0 }, grid: { display: false } },
+      y: { ticks: { callback: v => 'R$'+v }, grid: { color: '#252729' } }
+    }
+  }
+});
+
+// STATUS PAGAMENTO
+new Chart(document.getElementById('chart-status'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Pago', 'Pendente'],
+    datasets: [{
+      data: [1066.82, 3320.00],
+      backgroundColor: [TEAL, GOLD],
+      borderWidth: 0,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '70%',
+    plugins: {
+      legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 10, padding: 12 } },
+      tooltip: { callbacks: { label: c => ` R$ ${c.raw.toFixed(2)}` } }
+    }
+  }
+});
+</script>
+</body>
+</html>
