@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pieta Arte Sacra — Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0c0d0f;
+  --surface: #141618;
+  --surface2: #1c1e21;
+  --border: #252729;
+  --gold: #c9a96e;
+  --gold2: #e8c98a;
+  --gold-dim: rgba(201,169,110,0.12);
+  --teal: #4ecdc4;
+  --red: #e05252;
+  --text: #f0ede8;
+  --muted: #7a7670;
+  --radius: 16px;
+}
+body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 14px; min-height: 100vh; }
+
+/* UPLOAD */
+#upload-screen {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 100vh; padding: 24px;
+  background: radial-gradient(ellipse at 50% 0%, #1a1208 0%, var(--bg) 65%);
+}
+.upload-logo {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 28px; margin-bottom: 20px;
+}
+.upload-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px; font-weight: 600; margin-bottom: 6px; color: var(--gold2);
+}
+.upload-sub { color: var(--muted); font-size: 14px; margin-bottom: 40px; }
+.upload-box {
+  background: var(--surface); border: 2px dashed var(--border);
+  border-radius: 20px; padding: 48px 40px; text-align: center;
+  max-width: 460px; width: 100%; cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+.upload-box:hover, .upload-box.drag { border-color: var(--gold); background: #1a1208; }
+.upload-box .icon { font-size: 48px; margin-bottom: 16px; }
+.upload-box h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+.upload-box p { color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 24px; }
+.btn-primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  color: #0c0d0f; border: none; padding: 12px 28px; border-radius: 100px;
+  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: opacity .15s, transform .15s;
+}
+.btn-primary:hover { opacity: .88; transform: scale(1.02); }
+#file-input { display: none; }
+.upload-note { margin-top: 16px; font-size: 12px; color: var(--muted); }
+
+/* HEADER */
+header {
+  background: linear-gradient(135deg, #0c0d0f 0%, #1a1510 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 68px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { display: flex; align-items: center; gap: 14px; }
+.logo-icon {
+  width: 42px; height: 42px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.logo-text h1 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: var(--gold2); }
+.logo-text p { font-size: 11px; color: var(--muted); }
+.h-right { display: flex; align-items: center; gap: 10px; }
+.btn-icon {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--muted); width: 36px; height: 36px; border-radius: 10px;
+  cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.btn-icon:hover { border-color: var(--gold); color: var(--gold); }
+.header-badge {
+  background: var(--gold-dim); border: 1px solid rgba(201,169,110,0.3);
+  color: var(--gold); padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 500;
+}
+
+/* MAIN */
+main { padding: 28px 32px; max-width: 1400px; margin: 0 auto; }
+
+.section-title {
+  font-size: 11px; font-weight: 600; color: var(--gold);
+  text-transform: uppercase; letter-spacing: 3px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(to right, var(--border), transparent); }
+
+/* KPI */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+.kpi-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px; position: relative; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.kpi-card.gold::before { background: linear-gradient(to right, var(--gold), var(--gold2)); }
+.kpi-card.teal::before { background: linear-gradient(to right, var(--teal), #a8edea); }
+.kpi-card.red::before { background: linear-gradient(to right, var(--red), #ff8a8a); }
+.kpi-card.purple::before { background: linear-gradient(to right, #9b59b6, #c39bd3); }
+.kpi-card:hover { border-color: rgba(201,169,110,0.3); }
+.kpi-label { font-size: 11px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+.kpi-value { font-family: 'Inter', sans-serif; font-size: 26px; font-weight: 700; line-height: 1; margin-bottom: 6px; letter-spacing: -0.5px; }
+.kpi-card.gold .kpi-value { color: var(--gold2); }
+.kpi-card.teal .kpi-value { color: var(--teal); }
+.kpi-card.red .kpi-value { color: var(--red); }
+.kpi-card.purple .kpi-value { color: #c39bd3; }
+.kpi-sub { font-size: 12px; color: var(--muted); }
+.kpi-icon { position: absolute; top: 18px; right: 18px; font-size: 26px; opacity: 0.18; }
+
+/* GRID */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.mb28 { margin-bottom: 28px; }
+
+/* CARD */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px; }
+.card-title { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.card-title span { color: var(--gold); }
+.chart-wrap { position: relative; }
+.chart-wrap.h180 { height: 180px; }
+.chart-wrap.h220 { height: 220px; }
+.chart-wrap.h260 { height: 260px; }
+.chart-wrap.h300 { height: 300px; }
+
+/* ENCOMENDAS */
+.enc-row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.enc-row:last-child { border-bottom: none; }
+.enc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.enc-dot.pago { background: var(--teal); }
+.enc-dot.pendente { background: var(--gold); }
+.enc-info { flex: 1; }
+.enc-nome { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.enc-cliente { font-size: 11px; color: var(--muted); }
+.enc-val { font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700; color: var(--gold2); }
+.enc-badge { font-size: 10px; padding: 3px 8px; border-radius: 100px; font-weight: 500; white-space: nowrap; }
+.enc-badge.pago { background: rgba(78,205,196,0.15); color: var(--teal); }
+.enc-badge.pendente { background: rgba(201,169,110,0.15); color: var(--gold); }
+
+/* GASTOS */
+.gasto-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.gasto-row:last-child { border-bottom: none; }
+.gasto-val { color: var(--red); font-weight: 600; }
+
+/* PRODUTOS */
+.prod-row { display: grid; grid-template-columns: 1fr 90px 90px 90px 70px; gap: 8px; align-items: center; padding: 11px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.prod-row:last-child { border-bottom: none; }
+.prod-row.header { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 6px; }
+.prod-name { font-weight: 500; }
+.prod-val { text-align: right; }
+.prod-custo { color: var(--muted); }
+.prod-preco { color: var(--gold2); font-weight: 600; }
+.prod-lucro { color: var(--teal); font-weight: 600; }
+.prod-margem { text-align: right; font-size: 11px; padding: 3px 8px; border-radius: 100px; background: rgba(78,205,196,0.1); color: var(--teal); font-weight: 600; }
+
+/* RANKING */
+.prog-row { margin-bottom: 12px; }
+.prog-top { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
+.prog-name { color: var(--text); }
+.prog-val { color: var(--gold2); font-weight: 600; }
+.prog-bar { height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 100px; }
+
+/* STAT */
+.stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+.stat-label { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+.stat-val { font-family: 'Inter', sans-serif; font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+
+.empty-state { text-align: center; color: var(--muted); padding: 24px; font-size: 13px; }
+
+#dashboard { display: none; }
+
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2,1fr); }
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  main { padding: 16px; }
+  header { padding: 0 16px; }
+  .kpi-grid { grid-template-columns: 1fr; }
+  .prod-row { grid-template-columns: 1fr 70px 70px 70px; }
+  .prod-row .prod-margem { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- UPLOAD -->
+<div id="upload-screen">
+  <div class="upload-logo">✝️</div>
+  <div class="upload-title">Pieta Arte Sacra</div>
+  <div class="upload-sub">Painel Financeiro · Carregue sua planilha para visualizar</div>
+  <div class="upload-box" id="drop-zone" onclick="document.getElementById('file-input').click()">
+    <div class="icon">📊</div>
+    <h3>Carregar Planilha</h3>
+    <p>Arraste o arquivo <strong>Atelier_Completo.xlsx</strong> aqui ou clique para selecionar</p>
+    <button class="btn-primary" onclick="event.stopPropagation(); document.getElementById('file-input').click()">Selecionar Arquivo</button>
+    <input type="file" id="file-input" accept=".xlsx,.xls">
+    <div class="upload-note">🔒 Nada é enviado para a internet. Tudo processado no seu navegador.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <header>
+    <div class="logo">
+      <div class="logo-icon">✝️</div>
+      <div class="logo-text">
+        <h1>Pieta Arte Sacra</h1>
+        <p id="h-sub">Painel Financeiro</p>
+      </div>
+    </div>
+    <div class="h-right">
+      <div class="header-badge">Arte & Fé</div>
+      <button class="btn-icon" title="Carregar nova planilha" onclick="recarregar()">↩</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- KPIs -->
+    <div class="section-title">Visão Geral</div>
+    <div class="kpi-grid mb28">
+      <div class="kpi-card gold">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-label">Total de Entradas</div>
+        <div class="kpi-value" id="kpi-entradas">—</div>
+        <div class="kpi-sub" id="kpi-entradas-sub"></div>
+      </div>
+      <div class="kpi-card red">
+        <div class="kpi-icon">🛒</div>
+        <div class="kpi-label">Total de Saídas</div>
+        <div class="kpi-value" id="kpi-saidas">—</div>
+        <div class="kpi-sub" id="kpi-saidas-sub"></div>
+      </div>
+      <div class="kpi-card teal">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-label">Lucro (Entradas - Saídas)</div>
+        <div class="kpi-value" id="kpi-lucro">—</div>
+        <div class="kpi-sub" id="kpi-lucro-sub"></div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="kpi-icon">🎨</div>
+        <div class="kpi-label">Lucro Total das Obras</div>
+        <div class="kpi-value" id="kpi-obras">—</div>
+        <div class="kpi-sub" id="kpi-obras-sub"></div>
+      </div>
+    </div>
+
+    <!-- ENCOMENDAS + GASTOS -->
+    <div class="section-title">Encomendas & Gastos</div>
+    <div class="grid-2 mb28">
+      <div class="card">
+        <div class="card-title"><span>✝</span> Encomendas</div>
+        <div id="enc-lista"><div class="empty-state">Carregue a planilha</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>🛒</span> Gastos por Item</div>
+        <div class="chart-wrap h180" style="margin-bottom:16px;"><canvas id="chart-gastos"></canvas></div>
+        <div id="gastos-lista"><div class="empty-state">Carregue a planilha</div></div>
+      </div>
+    </div>
+
+    <!-- PRECIFICAÇÃO -->
+    <div class="section-title">Precificação & Lucro por Produto</div>
+    <div class="card mb28">
+      <div class="card-title"><span>✝</span> Análise de Rentabilidade</div>
+      <div class="prod-row header">
+        <div>Produto</div>
+        <div class="prod-val">Custo</div>
+        <div class="prod-val">Preço Venda</div>
+        <div class="prod-val">Lucro</div>
+        <div class="prod-val">Margem</div>
+      </div>
+      <div id="prod-lista"><div class="empty-state">Carregue a planilha</div></div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div class="section-title">Análises Visuais</div>
+    <div class="grid-2 mb28">
+      <div class="card">
+        <div class="card-title"><span>📊</span> Lucro por Produto (R$)</div>
+        <div class="chart-wrap h260"><canvas id="chart-lucro"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>📊</span> Custo vs Preço de Venda</div>
+        <div class="chart-wrap h260"><canvas id="chart-custo-preco"></canvas></div>
+      </div>
+    </div>
+
+    <!-- RANKING + STATUS -->
+    <div class="grid-2 mb28">
+      <div class="card">
+        <div class="card-title"><span>🏆</span> Ranking de Lucro</div>
+        <div id="ranking-lista"><div class="empty-state">Carregue a planilha</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span>💳</span> Status de Pagamentos</div>
+        <div class="chart-wrap h200" style="margin-bottom:14px;"><canvas id="chart-status"></canvas></div>
+        <div class="stat-box">
+          <div><div class="stat-label">Total Pago</div><div class="stat-val" id="stat-pago" style="color:var(--teal)">—</div></div>
+          <span style="font-size:22px">✅</span>
+        </div>
+        <div class="stat-box">
+          <div><div class="stat-label">Total Pendente</div><div class="stat-val" id="stat-pendente" style="color:var(--gold)">—</div></div>
+          <span style="font-size:22px">⏳</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+Chart.defaults.color = '#7a7670';
+Chart.defaults.borderColor = '#252729';
+Chart.defaults.font.family = 'Inter';
+
+const GOLD = '#c9a96e', GOLD2 = '#e8c98a', TEAL = '#4ecdc4', RED = '#e05252', PURPLE = '#9b59b6';
+const COLORS = [GOLD, GOLD2, TEAL, PURPLE, RED, '#56cfe1', '#ff9f43', '#a29bfe', '#fd79a8', '#fdcb6e'];
+let charts = {};
+
+function fmt(v) { return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function norm(s) { return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim(); }
+function parseBRL(v) { if(!v) return 0; return parseFloat(String(v).replace(/[R$\s.]/g,'').replace(',','.')) || Number(v) || 0; }
+
+// UPLOAD
+document.getElementById('file-input').addEventListener('change', e => { if(e.target.files[0]) readExcel(e.target.files[0]); });
+const dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); if(e.dataTransfer.files[0]) readExcel(e.dataTransfer.files[0]); });
+
+function sheetRows(ws, headerKey) {
+  const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+  const hi = rows.findIndex(r => r.some(c => norm(String(c)) === norm(headerKey)));
+  if(hi < 0) return [];
+  const hdrs = rows[hi];
+  return rows.slice(hi+1).map(row => {
+    const o = {};
+    hdrs.forEach((h,i) => { if(h) o[String(h).trim()] = row[i] ?? ''; });
+    return o;
+  }).filter(r => Object.values(r).some(v => v !== ''));
+}
+
+let entradasData = [], saidasData = [], precData = [];
+
+function readExcel(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const wb = XLSX.read(e.target.result, { type:'array' });
+    const names = wb.SheetNames;
+
+    // ENTRADAS
+    const entName = names.find(n => norm(n).includes('entrada'));
+    if(entName) {
+      const raw = sheetRows(wb.Sheets[entName], 'Data');
+      entradasData = raw.map(r => {
+        const vk = Object.keys(r).find(k => norm(k).includes('valor')) || 'Valor (R$)';
+        const stk = Object.keys(r).find(k => norm(k).includes('status') || norm(k).includes('observ')) || '';
+        return {
+          DESCRICAO: String(r['Descrição'] || r['Descricao'] || '').trim(),
+          CLIENTE:   String(r['Cliente'] || '').trim(),
+          PAGAMENTO: String(r['Forma de Pagamento'] || '').trim(),
+          VALOR:     parseBRL(r[vk]),
+          OBS:       String(r['Observações'] || r['Observacoes'] || '').trim(),
+          STATUS:    String(r['Status'] || r[stk] || '').trim(),
+        };
+      }).filter(r => r.DESCRICAO && r.VALOR > 0);
+    }
+
+    // SAÍDAS
+    const saiName = names.find(n => norm(n).includes('saida') || norm(n).includes('saída'));
+    if(saiName) {
+      const raw = sheetRows(wb.Sheets[saiName], 'Data');
+      saidasData = raw.map(r => {
+        const vk = Object.keys(r).find(k => norm(k).includes('valor')) || 'Valor (R$)';
+        return {
+          DESCRICAO: String(r['Descrição'] || r['Descricao'] || '').trim(),
+          VALOR:     parseBRL(r[vk]),
+          PAGAMENTO: String(r['Forma de Pagamento'] || '').trim(),
+        };
+      }).filter(r => r.DESCRICAO && r.VALOR > 0);
+    }
+
+    // PRECIFICAÇÃO
+    const precName = names.find(n => norm(n).includes('precifica'));
+    if(precName) {
+      const raw = sheetRows(wb.Sheets[precName], 'Produto / Obra');
+      precData = raw.map(r => {
+        const custo = parseBRL(r['CUSTO\nTOTAL (R$)'] || r['CUSTO TOTAL (R$)'] || r['Custo M.O. (R$)'] || 0);
+        const preco = parseBRL(r['Preço de\nVenda Real (R$)'] || r['Preço de Venda Real (R$)'] || r['Preco de Venda Real (R$)'] || 0);
+        const lucro = parseBRL(r['LUCRO\nREAL (R$)'] || r['LUCRO REAL (R$)'] || r['Lucro Real (R$)'] || 0);
+        // Tenta pegar custo total de outra forma
+        const custoTot = parseBRL(r[Object.keys(r).find(k => norm(k).includes('custo') && norm(k).includes('total'))] || 0);
+        const precoVenda = parseBRL(r[Object.keys(r).find(k => norm(k).includes('venda') && norm(k).includes('real'))] || 0);
+        const lucroReal = parseBRL(r[Object.keys(r).find(k => norm(k).includes('lucro') && norm(k).includes('real'))] || 0);
+        const nome = String(r['Produto / Obra'] || '').trim();
+        return {
+          NOME: nome,
+          CUSTO: custoTot || custo,
+          PRECO: precoVenda || preco,
+          LUCRO: lucroReal || lucro,
+        };
+      }).filter(r => r.NOME && r.PRECO > 0);
+
+      // Se não leu, tenta linha por linha com índices fixos
+      if(!precData.length) {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets[precName], { header:1, defval:'' });
+        precData = [];
+        for(const row of rows) {
+          const nome = String(row[0]||'').trim();
+          const custo = Number(row[7]) || 0;
+          const preco = Number(row[10]) || 0;
+          const lucro = Number(row[11]) || 0;
+          if(nome && preco > 0 && custo > 0) precData.push({ NOME: nome, CUSTO: custo, PRECO: preco, LUCRO: lucro });
+        }
+      }
+    }
+
+    if(!entradasData.length && !saidasData.length) {
+      alert('Não foi possível ler os dados.\nVerifique se o arquivo tem as abas "Entradas" e "Saídas".');
+      return;
+    }
+
+    document.getElementById('upload-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('h-sub').textContent = `${entradasData.length} entradas · ${saidasData.length} saídas · ${precData.length} produtos`;
+    renderAll();
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function renderAll() {
+  renderKPIs();
+  renderEncomendas();
+  renderGastos();
+  renderProdutos();
+  renderGraficos();
+  renderRanking();
+  renderStatus();
+}
+
+function renderKPIs() {
+  const totalEnt = entradasData.reduce((s,r) => s+r.VALOR, 0);
+  const totalSai = saidasData.reduce((s,r) => s+r.VALOR, 0);
+  const lucro = totalEnt - totalSai;
+  const lucroObras = precData.reduce((s,r) => s+r.LUCRO, 0);
+
+  set('kpi-entradas', fmt(totalEnt));
+  set('kpi-entradas-sub', `${entradasData.length} encomendas registradas`);
+  set('kpi-saidas', fmt(totalSai));
+  set('kpi-saidas-sub', `${saidasData.length} compras realizadas`);
+  set('kpi-lucro', fmt(lucro));
+  const pct = totalEnt > 0 ? ((lucro/totalEnt)*100).toFixed(1) : 0;
+  set('kpi-lucro-sub', `Margem de ${pct}%`);
+  set('kpi-obras', fmt(lucroObras));
+  set('kpi-obras-sub', `${precData.length} produtos precificados`);
+}
+
+function renderEncomendas() {
+  const el = document.getElementById('enc-lista');
+  if(!entradasData.length) { el.innerHTML = '<div class="empty-state">Sem dados</div>'; return; }
+  el.innerHTML = entradasData.map(r => {
+    const isPago = norm(r.OBS).includes('pago') && !norm(r.OBS).includes('nao') && !norm(r.OBS).includes('não');
+    const status = isPago ? 'pago' : 'pendente';
+    const label = isPago ? 'Pago' : 'Pendente';
+    return `<div class="enc-row">
+      <div class="enc-dot ${status}"></div>
+      <div class="enc-info">
+        <div class="enc-nome">${r.DESCRICAO}</div>
+        <div class="enc-cliente">${r.CLIENTE} · ${r.PAGAMENTO}</div>
+      </div>
+      <div class="enc-val">${fmt(r.VALOR)}</div>
+      <div class="enc-badge ${status}">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderGastos() {
+  const el = document.getElementById('gastos-lista');
+  if(!saidasData.length) { el.innerHTML = '<div class="empty-state">Sem dados</div>'; return; }
+  el.innerHTML = saidasData.map(r => `
+    <div class="gasto-row">
+      <span>${r.DESCRICAO}</span>
+      <span class="gasto-val">${fmt(r.VALOR)}</span>
+    </div>`).join('');
+
+  mkChart('chart-gastos', 'doughnut', {
+    labels: saidasData.map(r => r.DESCRICAO.length > 18 ? r.DESCRICAO.slice(0,18)+'…' : r.DESCRICAO),
+    datasets: [{ data: saidasData.map(r => r.VALOR), backgroundColor: COLORS, borderWidth: 0, hoverOffset: 6 }]
+  }, { doughnut: true });
+}
+
+function renderProdutos() {
+  const el = document.getElementById('prod-lista');
+  if(!precData.length) { el.innerHTML = '<div class="empty-state">Sem dados de precificação</div>'; return; }
+  el.innerHTML = precData.map(r => {
+    const margem = r.PRECO > 0 ? Math.round((r.LUCRO/r.PRECO)*100) : 0;
+    return `<div class="prod-row">
+      <div class="prod-name">${r.NOME}</div>
+      <div class="prod-val prod-custo">${fmt(r.CUSTO)}</div>
+      <div class="prod-val prod-preco">${fmt(r.PRECO)}</div>
+      <div class="prod-val prod-lucro">${fmt(r.LUCRO)}</div>
+      <div class="prod-margem">${margem}%</div>
+    </div>`;
+  }).join('');
+}
+
+function renderGraficos() {
+  if(!precData.length) return;
+  const labels = precData.map(r => r.NOME.length > 15 ? r.NOME.slice(0,15)+'…' : r.NOME);
+
+  mkChart('chart-lucro', 'bar', {
+    labels,
+    datasets: [{ label:'Lucro (R$)', data: precData.map(r => r.LUCRO), backgroundColor: COLORS, borderRadius: 8, borderSkipped: false }]
+  });
+
+  mkChart('chart-custo-preco', 'bar', {
+    labels,
+    datasets: [
+      { label:'Custo', data: precData.map(r => r.CUSTO), backgroundColor: RED+'99', borderRadius: 4, borderSkipped: false },
+      { label:'Preço Venda', data: precData.map(r => r.PRECO), backgroundColor: GOLD+'99', borderRadius: 4, borderSkipped: false }
+    ]
+  }, { legendShow: true });
+}
+
+function renderRanking() {
+  const sorted = [...precData].sort((a,b) => b.LUCRO-a.LUCRO);
+  const max = sorted[0]?.LUCRO || 1;
+  document.getElementById('ranking-lista').innerHTML = sorted.map((r,i) => `
+    <div class="prog-row">
+      <div class="prog-top"><span class="prog-name">${r.NOME}</span><span class="prog-val">${fmt(r.LUCRO)}</span></div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${Math.round(r.LUCRO/max*100)}%;background:${COLORS[i%COLORS.length]}"></div></div>
+    </div>`).join('') || '<div class="empty-state">Sem dados</div>';
+}
+
+function renderStatus() {
+  const pago = entradasData.filter(r => norm(r.OBS).includes('pago') && !norm(r.OBS).includes('nao') && !norm(r.OBS).includes('não')).reduce((s,r) => s+r.VALOR, 0);
+  const pendente = entradasData.filter(r => !norm(r.OBS).includes('pago') || norm(r.OBS).includes('nao') || norm(r.OBS).includes('não')).reduce((s,r) => s+r.VALOR, 0);
+
+  set('stat-pago', fmt(pago));
+  set('stat-pendente', fmt(pendente));
+
+  mkChart('chart-status', 'doughnut', {
+    labels: ['Pago', 'Pendente'],
+    datasets: [{ data: [pago, pendente], backgroundColor: [TEAL, GOLD], borderWidth: 0, hoverOffset: 6 }]
+  }, { doughnut: true, cutout: '70%' });
+}
+
+function mkChart(id, type, data, opts={}) {
+  if(charts[id]) { charts[id].destroy(); delete charts[id]; }
+  const ctx = document.getElementById(id)?.getContext('2d');
+  if(!ctx) return;
+  charts[id] = new Chart(ctx, {
+    type, data,
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: opts.legendShow
+          ? { labels: { color:'#7a7670', font:{ size:11 }, boxWidth:10 } }
+          : opts.doughnut
+            ? { position:'right', labels:{ color:'#7a7670', font:{ size:10 }, boxWidth:10, padding:8 } }
+            : { display: false },
+        tooltip: { callbacks: { label: c => ` ${fmt(c.raw)}` } }
+      },
+      cutout: opts.cutout || undefined,
+      scales: opts.doughnut ? {} : {
+        x: { ticks:{ color:'#7a7670', font:{ size:10 }, maxRotation:30 }, grid:{ display:false } },
+        y: { ticks:{ color:'#7a7670', callback: v => 'R$'+v }, grid:{ color:'#252729' } }
+      }
+    }
+  });
+}
+
+function set(id, v) { const el = document.getElementById(id); if(el) el.textContent = v; }
+
+function recarregar() {
+  entradasData = []; saidasData = []; precData = [];
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('upload-screen').style.display = 'flex';
+}
+</script>
+</body>
+</html>
